@@ -354,14 +354,21 @@ function _M:reload_openresty()
     ngx.timer.at(0, function()
         local prefix= ngx.config.prefix()
         prefix = stringUtil.replace(prefix , "\\" , "/")  --windows，直接替换符号
-        local parent=stringUtil.replace(prefix , "/list_ejdb/" , "/")
+        local parent=stringUtil.replace(prefix , "/xapi_ejdb/" , "/")
         local cmd
         if(package.config:sub(1, 1) == "\\" )then
             cmd= fmt("%sopenresty-1.19.3.1/nginx.exe -p %s  -c %s/conf/nginx.conf -s reload",parent,prefix,prefix)
             --cmd= fmt("cd %sdev && ./list-reload.bat",prefix)
         else
-            --todo 直接运行脚本
-            cmd= fmt("cd %s  && ./reload_code.sh",prefix)
+
+            local path = prefix.."showapi/plugins/controller/connector/ejdb/reload_code.sh"
+            local str = "%ssbin/nginx -p %s  -c %sconf/nginx.conf -s reload"
+            fileUtil.write_to_file(path , string.format(str,prefix,prefix,prefix) )
+
+            local  a,b = os.execute("chmod 777 "..prefix.."showapi/plugins/controller/sys/system/reload_code.sh")
+            print("aaaaaaaaaaaaaaaaaaaaaaa",a)
+            print("bbbbbbbbbbbbbbbbbbbbbbb",b)
+            cmd= fmt("cd %s && ./showapi/plugins/controller/connector/ejdb/reload_code.sh",prefix)
         end
         os.execute(cmd)
     end)

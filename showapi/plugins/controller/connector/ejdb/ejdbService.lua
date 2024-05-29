@@ -1,3 +1,4 @@
+local utils=require ("showapi.util.utils")
 local objid = require ( "resty.mongol.object_id" )
 local cjson = require "showapi.lib.dkjson"
 local pcall=pcall
@@ -23,9 +24,14 @@ local re_match=ngx.re.match
 
 
 local _M=Object:extend()
+local pref= ngx.config.prefix()
+function _M.get_user_data_path()
+	return fileUtil.getParentPath(fileUtil.getParentPath(pref)).."/user_data/"
+end
+
 
 _M.wait_queue=ngx.shared.wait_queue
-local pref= ngx.config.prefix()
+
 
 local function makeJQL( query,returnfields,sort,limit,skip)
 	local list={}
@@ -71,7 +77,7 @@ _M.db_holder_map={}   --用于db容器缓存
 
 local open_db=function(db_path)
 	local wrap
-	local parent_path=fileUtil.getParentPath(pref)
+	local parent_path=fileUtil.getParentPath(fileUtil.getParentPath(pref))
 
 	if not su.startswith(db_path,parent_path)  then
 		return false,"the path is not permited"
@@ -105,7 +111,7 @@ function _M:clear_outdate_log(day , instance_id)
 
 	local del_list={}
 	local allFilePath = {}
-	fileUtil.findAllFiles(ngx.config.prefix().."/db/"..instance_id.."/log",allFilePath)
+	fileUtil.findAllFiles(_M.get_user_data_path().."/db/"..instance_id.."/log",allFilePath)
 	for index, dbpath in pairs(allFilePath) do
 		local m, err = ngx.re.match(dbpath, "/log/([0-9]+).db$","o")   -- 参数"o"是开启缓存必须的
 		if m  then	--说明找到
@@ -174,9 +180,9 @@ function _M.doIncallBack(instance_id,callback)
 	--else
 		if( stringUtil.endswith(instance_id , ".db") )then--日志操作时传入的是db下的完整路径
 			path = fileUtil.getParentPath(pref.."db/" .. instance_id)
-			db_path = pref.."db/" .. instance_id
+			db_path = _M.get_user_data_path().."db/" .. instance_id
 		else
-			path  = pref.."db/" .. instance_id
+			path  = _M.get_user_data_path().."db/" .. instance_id
 			db_path=path.."/core.db"
 		end
 	--end
@@ -513,7 +519,7 @@ end
 function _M.check_auth_content()
 
 	local args = ngx.ctx.req_model.headArgs
-	local token_file = ngx.config.prefix() .."/db/token.txt"
+	local token_file = _M.get_user_data_path() .."/db/token.txt"
 	if(not  fileUtil.file_exists( token_file) )then
 		return false
 	else

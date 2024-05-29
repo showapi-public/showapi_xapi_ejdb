@@ -3,7 +3,9 @@ local pcall = pcall
 local lfs=require"lfs"
 local pairs = pairs
 local tostring = tostring
+local os_execute=os.execute
 local string_gsub = string.gsub
+local io_open=io.open
 local string_find = string.find
 local stringUtil = require("showapi.util.stringUtil")
 local _M = {}
@@ -22,9 +24,9 @@ end
 function _M.file_createDic(_path)
     if platform() == "win" then
         _path = stringUtil.replace(_path , "/" , "\\")
-        os.execute("mkdir " .. _path)
+        os_execute("mkdir " .. _path)
     else
-        os.execute("mkdir -p \"" .. _path .. "\"")
+        os_execute("mkdir -p " .. _path )
     end
 end
 
@@ -78,9 +80,9 @@ function _M.UnzipFile(_path)
         print(" UnzipFile  ")
         -- unzip test.zip -d /root/
         _path = stringUtil.replace(_path , "/" , "\\")
-        os.execute(" unzip  " .. _path .."\" -d " .." res/test ")
+        os_execute(" unzip  " .. _path .."\" -d " .." res/test ")
     else
-        os.execute("unzip  -p \"" .. _path .. "\"")
+        os_execute("unzip  -p \"" .. _path .. "\"")
     end
 end
 
@@ -112,7 +114,7 @@ function _M.os_execute(command,isfile)
     if isfile then
         comd="/bin/bash "..f.." > "..n.." 2>&1"
     end
-    os.execute(comd)
+    os_execute(comd)
     local result = _M.read_file(n)
     os.remove(n)
     os.remove(f)
@@ -190,6 +192,23 @@ function _M.write_to_file(path, value)
 end
 
 
+
+--- Write file contents.以二进制形式
+-- @param path filepath to write to
+-- @return `true` upon success, or `false` + error message on failure
+function _M.write_to_file_bin(path, value)
+    local file, err = io.open(path, "wb")
+    if err then
+        return false, err
+    end
+
+    file:write(value)
+    file:close()
+    return true
+end
+
+
+
 --- append file contents.
 -- @param path filepath to write to
 -- @return `true` upon success, or `false` + error message on failure
@@ -244,8 +263,85 @@ end
 --- 取一个文件路径的上级
 -- @param _path 当前路径
 function _M.getParentPath(_path)
-    return string.match(_path,"(.+)/")
+    --return string.match(_path,"(.+)/")
+
+    --print("传入的路径:" , _path)
+    local separators = {"/", "\\"} -- 多个可能的路径分隔符，包括斜杠和反斜杠
+    local lastSeparator = nil
+
+    for _, separator in ipairs(separators) do
+        lastSeparator = _path:find(separator .. "[^" .. separator .. "]*$") -- 逐个尝试不同的分隔符
+        if lastSeparator then
+            break
+        end
+    end
+    --print("lastSeparator:" , lastSeparator)
+    local result
+    if lastSeparator then
+        result = _path:sub(1, lastSeparator - 1) -- 返回路径分隔符之前的部分作为上级目录
+        -- 如果没有找到路径分隔符，则无法获取上级目录
+    end
+    --print("取到的路径:" , result)
+    return result
 end
 
+-- 递归创建文件夹
+function _M.createFolder(path)
+    --    print("================  path is : ",path)
+    path = stringUtil.replace(path , "\\" , "/")
+    -- 使用正则表达式抽取每一级目录
+    local currentPath="/"
+    local panfu=""
+    if platform() == "win" then
+        panfu=path:sub(1,2)
+    end
+    for directory in string.gmatch(path, "/([^/]+)") do
+        currentPath=currentPath..directory.."/"
+        --        print("------------  ",currentPath)
+        lfs.mkdir(panfu..currentPath)      --它只能创建末端目录
+    end
 
+
+end
+
+-- 递归拷贝文件夹
+function _M.copyFolder(source, target)
+    source = stringUtil.replace(source , "\\" , "/")
+    target = stringUtil.replace(target , "\\" , "/")
+    _M.createFolder(target) -- 创建目标文件夹
+
+    for entry in lfs.dir(source) do
+        if entry ~= "." and entry ~= ".." then
+            local sourceEntry = source .. "/" .. entry
+            local targetEntry = target .. "/" .. entry
+
+            local attributes = lfs.attributes(sourceEntry)
+            if attributes.mode == "directory" then
+                _M.copyFolder(sourceEntry, targetEntry) -- 递归拷贝子文件夹
+            else
+                -- 复制文件
+                local sourceFile = io_open(sourceEntry, "rb")
+                local targetFile,err = io_open(targetEntry, "wb")
+                if sourceFile and targetFile then
+                    targetFile:write(sourceFile:read("*a"))
+                    sourceFile:close()
+                    targetFile:close()
+                end
+            end
+        end
+    end
+end
+
+function _M.copyFile(source, target)
+    print("源文件:",source)
+    print("目标文件:" , target)
+    _M.createFolder( _M.getParentPath(target))
+    local sourceFile = io_open(source, "rb")
+    local targetFile,err = io_open(target, "wb")
+    if sourceFile and targetFile then
+        targetFile:write(sourceFile:read("*a"))
+        sourceFile:close()
+        targetFile:close()
+    end
+end
 return _M

@@ -79,7 +79,7 @@ function _M:init_worker_by_lua()
         print("---------------- create  index")
 
         --查找有哪些用户
-        local path = ngx.config.prefix().."/db"
+        local path = _M.get_user_data_path().."/db"
         local mode = lfs.attributes( path , "mode")
         if(not mode)then  return end
         if mode ~= "file" then
@@ -95,7 +95,7 @@ function _M:init_worker_by_lua()
                             for i=1,3 do
                                 local endday=now:adddays(1)
                                 local day_str = endday:fmt("%Y%m%d")
-                                local db_path="/data/ejdb_data/api_hub/db/"..instanceId.."/log/"..day_str..".db"
+                                local db_path=_M.get_user_data_path().."/db/"..instanceId.."/log/"..day_str..".db"
                                 local coll="log"
                                 local index_type="s"
                                 ejdb.ensure_index(db_path,coll,"/ct",index_type )

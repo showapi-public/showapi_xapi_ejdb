@@ -9,7 +9,7 @@ local table_insert=table.insert
 local date = require "showapi.lib.date"
 local pref= ngx.config.prefix()
 local stringUtil = require("showapi.util.stringUtil")
-
+local fileUtil = require "showapi.util.fileUtil"
 
 local BasePlugin_api = require("showapi.plugins.base_plugin.api")
 local _M = BasePlugin_api:getInstance()

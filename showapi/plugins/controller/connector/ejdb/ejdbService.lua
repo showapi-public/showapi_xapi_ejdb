@@ -77,7 +77,8 @@ _M.db_holder_map={}   --用于db容器缓存
 
 local open_db=function(db_path)
 	local wrap
-	local parent_path=fileUtil.getParentPath(fileUtil.getParentPath(pref))
+	local parent_path=fileUtil.getParentPath(_M.get_user_data_path())
+	print(db_path , "========================================父文件路径"  ,parent_path)
 
 	if not su.startswith(db_path,parent_path)  then
 		return false,"the path is not permited"
@@ -179,7 +180,7 @@ function _M.doIncallBack(instance_id,callback)
 	--	db_path=path.."/core.db"
 	--else
 		if( stringUtil.endswith(instance_id , ".db") )then--日志操作时传入的是db下的完整路径
-			path = fileUtil.getParentPath(pref.."db/" .. instance_id)
+			path = fileUtil.getParentPath(_M.get_user_data_path().."db/" .. instance_id)
 			db_path = _M.get_user_data_path().."db/" .. instance_id
 		else
 			path  = _M.get_user_data_path().."db/" .. instance_id

@@ -1,4 +1,3 @@
-local utils=require ("showapi.util.utils")
 local objid = require ( "resty.mongol.object_id" )
 local cjson = require "showapi.lib.dkjson"
 local pcall=pcall

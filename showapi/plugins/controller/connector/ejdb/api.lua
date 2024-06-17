@@ -365,7 +365,7 @@ function _M:reload_openresty()
             local str = "%ssbin/nginx -p %s  -c %sconf/nginx.conf -s reload"
             fileUtil.write_to_file(path , string.format(str,prefix,prefix,prefix) )
 
-            local  a,b = os.execute("chmod 777 "..prefix.."showapi/plugins/controller/sys/system/reload_code.sh")
+            local  a,b = os.execute("chmod 777 "..prefix.."showapi/plugins/controller/connector/ejdb/reload_code.sh")
             print("aaaaaaaaaaaaaaaaaaaaaaa",a)
             print("bbbbbbbbbbbbbbbbbbbbbbb",b)
             cmd= fmt("cd %s && ./showapi/plugins/controller/connector/ejdb/reload_code.sh",prefix)

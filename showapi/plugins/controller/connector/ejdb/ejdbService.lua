@@ -111,7 +111,7 @@ function _M:clear_outdate_log(day , instance_id)
 
 	local del_list={}
 	local allFilePath = {}
-	fileUtil.findAllFiles(_M.get_user_data_path().."/db/"..instance_id.."/log",allFilePath)
+	fileUtil.findAllFiles(_M.get_user_data_path().."db/"..instance_id.."/log",allFilePath)
 	for index, dbpath in pairs(allFilePath) do
 		local m, err = ngx.re.match(dbpath, "/log/([0-9]+).db$","o")   -- 参数"o"是开启缓存必须的
 		if m  then	--说明找到

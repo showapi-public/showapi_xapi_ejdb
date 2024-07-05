@@ -249,9 +249,6 @@ function _M:delete( )
         args.db_path=db_path_test
         args.coll=coll_test
         args.query=[[/[_id="6066950fd41d8cdc190002e7"] ]]
---        args.db_path="/data/ejdb_data/app/cxt/stock.db"
---        args.coll="day_view"
---        args.query=[[   /[ date = 20210922.0 ]  ]]
     end
     local num=ejdb.delete(args.db_path,args.coll,args.query )
     return self:render_json_str(0,'',{num=num})
@@ -268,10 +265,6 @@ function _M:count( )
         args.db_path=db_path_test
         args.coll=coll_test
         args.query=[[/*]]
---        args.db_path="/data/ejdb_data/app/cxt/stock.db"
---        args.coll="day_view"
---        args.query=[[   /[ date = 20210922.0 ]  ]]
-
     end
     local num=ejdb.count(args.db_path,args.coll, args.query )
     return self:render_json_str(0,'',{num=num})

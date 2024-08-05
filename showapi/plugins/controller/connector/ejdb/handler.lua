@@ -52,9 +52,9 @@ function _M:init_worker_by_lua()
         end
     end)
 
-    local lut
     --需要优化并发时的处理
     ngx.timer.every(60,function()
+        local lut
         print("---------------- check db_holder_map")
         local nowtime=now()
         for k,wrap in pairs(ejdb.db_holder_map) do
